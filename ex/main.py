@@ -134,13 +134,13 @@ def main():
         # all_sprites.draw(screen)
         all_sprites.update()
         all_sprites.draw(screen)
-        pygame.display.flip()
+        pygame.display.update()
 
 
 screen = pygame.display.set_mode((WIDTH, WIDTH))
 fps = 120
 clock = pygame.time.Clock()
-
+print(*load_level('map.txt'), sep="\n")
 player, level_x, level_y = generate_level(load_level('map.txt'))
 
 if __name__ == '__main__':
