@@ -3,6 +3,7 @@ import sys
 import time
 
 import pygame
+from pygame.rect import Rect
 
 WIDTH = 550
 all_sprites = pygame.sprite.Group()
@@ -40,9 +41,8 @@ def start_screen():
                 terminate()
             elif event.type == pygame.KEYDOWN or \
                     event.type == pygame.MOUSEBUTTONDOWN:
-                main() # начинаем игру
+                return # начинаем игру
         pygame.display.flip()
-        clock.tick(fps)
 
 
 def load_image(name, colorkey=None):
@@ -72,16 +72,20 @@ def generate_level(level):
 
 
 def load_level(filename):
-    filename = "data/" + filename
-    # читаем уровень, убирая символы перевода строки
-    with open(filename, 'r') as mapFile:
-        level_map = [line.strip() for line in mapFile]
+    try:
+        # читаем уровень, убирая символы перевода строки
+        with open(filename, 'r') as mapFile:
+            level_map = [line.strip() for line in mapFile]
 
-    # и подсчитываем максимальную длину
-    max_width = max(map(len, level_map))
+        # и подсчитываем максимальную длину
+        max_width = max(map(len, level_map))
 
-    # дополняем каждую строку пустыми клетками ('.')
-    return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+        # дополняем каждую строку пустыми клетками ('.')
+        return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+    except FileNotFoundError:
+        print("Файл не найден")
+        terminate()
+
 
 
 tile_images = {
@@ -100,6 +104,9 @@ class Tile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
 
+    def update(self, *args):
+        pass
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
@@ -117,8 +124,6 @@ class Player(pygame.sprite.Sprite):
             for move, direction in data:
                 if args[0].key == direction:
                     self.rect = self.rect.move(*move)
-                    # self.image = pygame.transform.rotate(self.image, self.current_angle - angle)
-                    # self.current_angle = angle
 
 
 def main():
@@ -128,23 +133,23 @@ def main():
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
-            # player_group.draw(screen)
+                terminate()
             player_group.update(event)
-        # all_sprites.draw(screen)
-        all_sprites.update()
-        all_sprites.draw(screen)
-        pygame.display.update()
+            tiles_group.draw(screen)
+            player_group.draw(screen)
+            pygame.display.flip()
 
 
 screen = pygame.display.set_mode((WIDTH, WIDTH))
 fps = 120
 clock = pygame.time.Clock()
-print(*load_level('map.txt'), sep="\n")
-player, level_x, level_y = generate_level(load_level('map.txt'))
+# print(*load_level('levels/map.txt'), sep="\n")
 
+path = input("Путь до карты: ")  # data/levels/map3.txt
+generate_level(load_level(path))
 if __name__ == '__main__':
     pygame.init()
     pygame.display.set_caption('Движущийся круг 2')
     start_screen()
+    main()
     pygame.quit()
