@@ -11,6 +11,23 @@ tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 
 
+class Camera:
+    # зададим начальный сдвиг камеры
+    def __init__(self):
+        self.dx = 0
+        self.dy = 0
+
+    # сдвинуть объект obj на смещение камеры
+    def apply(self, obj):
+        obj.rect.x += self.dx
+        obj.rect.y += self.dy
+
+    # позиционировать камеру на объекте target
+    def update(self, target):
+        self.dx = -(target.rect.x + target.rect.w // 2 - WIDTH // 2)
+        self.dy = -(target.rect.y + target.rect.h // 2 - WIDTH // 2)
+
+
 def terminate():
     pygame.quit()
     sys.exit()
@@ -134,19 +151,28 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+
             player_group.update(event)
-            tiles_group.draw(screen)
-            player_group.draw(screen)
-            pygame.display.flip()
+
+        camera.update(player)
+        # обновляем положение всех спрайтов
+        for sprite in all_sprites:
+            camera.apply(sprite)
+
+        screen.fill("black")
+        tiles_group.draw(screen)
+        player_group.draw(screen)
+        pygame.display.flip()
 
 
 screen = pygame.display.set_mode((WIDTH, WIDTH))
 fps = 120
 clock = pygame.time.Clock()
 # print(*load_level('levels/map.txt'), sep="\n")
-
+camera = Camera()
 path = input("Путь до карты: ")  # data/levels/map3.txt
-generate_level(load_level(path))
+# path = "data/levels/map3.txt"
+player, x, y = generate_level(load_level(path))
 if __name__ == '__main__':
     pygame.init()
     pygame.display.set_caption('Движущийся круг 2')
